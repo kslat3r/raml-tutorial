@@ -1,0 +1,94 @@
+#%RAML 1.0
+---
+title: Jukebox API
+baseUri: http://api.jukebox.com/{version}
+version: v1
+
+types:
+  song: !include jukebox-include-song.json
+
+resourceTypes: !include jukebox-include-resourceTypes.raml
+
+traits:
+  searchable:
+    queryParameters:
+      query:
+        description: |
+          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] <<description>>
+        example: |
+          <<example>>
+  orderable:
+    queryParameters:
+      orderBy:
+        description: |
+          Order by field: <<fieldsList>>
+        type: string
+        required: false
+      order:
+        description: Order
+        enum: [desc, asc]
+        default: desc
+        required: false
+  pageable:
+    queryParameters:
+      offset:
+        description: Skip over a number of elements by specifying an offset value for the query
+        type: integer
+        required: false
+        example: 20
+        default: 0
+      limit:
+        description: Limit the number of elements on the response
+        type: integer
+        required: false
+        example: 80
+        default: 10
+
+/songs:
+  type:
+    collection:
+      exampleCollection: !include jukebox-include-songs.json
+      exampleItem: !include jukebox-include-songs-new.json
+  is: [
+    searchable: {description: "with valid searchable fields: songTitle", example: "[\"songTitle\", \"Get L\", \"like\"]"},
+    orderable: {fieldsList: "songTitle"},
+    pageable
+  ]
+  /{songId}:
+    type:
+      collection-item:
+        exampleItem: !include jukebox-include-song-retrieve.json
+    /file-content:
+      description: The file to be reproduced by the client
+      get:
+        description: Get the file content
+        responses:
+          200:
+      post:
+        description: |
+          Enters the file content for an existing song entity.
+
+          Use the "binary/octet-stream" content type to specify the content from any consumer (excepting web-browsers).
+          Use the "multipart-form/data" content type to upload a file which content will become the file-content
+        body:
+          binary/octet-stream:
+          multipart/form-data:
+            properties:
+              file:
+                description: The file to be uploaded
+                required: true
+                type: file
+/artists:
+  get:
+  post:
+  /{artistId}:
+    get:
+    /albums:
+      get:
+/albums:
+  get:
+  post:
+  /{albumId}:
+    get:
+    /songs:
+      get:
